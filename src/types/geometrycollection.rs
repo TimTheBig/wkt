@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     fn basic_geometrycollection() {
-        let wkt: Wkt<f64> = Wkt::from_str("GEOMETRYCOLLECTION (POINT (8 4)))")
+        let wkt: Wkt<f64> = Wkt::from_str("GEOMETRYCOLLECTION Z(POINT Z(8 4 9)))")
             .ok()
             .unwrap();
         let items = match wkt {
@@ -122,7 +122,7 @@ mod tests {
 
     #[test]
     fn complex_geometrycollection() {
-        let wkt: Wkt<f64> = Wkt::from_str("GEOMETRYCOLLECTION (POINT (8 4),LINESTRING(4 6,7 10)))")
+        let wkt: Wkt<f64> = Wkt::from_str("GEOMETRYCOLLECTION Z(POINT Z(8 4 -8),LINESTRING Z(4 6 9,7 10 2)))")
             .ok()
             .unwrap();
         let items = match wkt {
@@ -147,22 +147,19 @@ mod tests {
         let point = Wkt::Point(Point(Some(Coord {
             x: 10.,
             y: 20.,
-            z: None,
-            m: None,
+            z: 30.,
         })));
 
         let multipoint = Wkt::MultiPoint(MultiPoint(vec![
             Point(Some(Coord {
                 x: 10.1,
                 y: 20.2,
-                z: None,
-                m: None,
+                z: 30.3,
             })),
             Point(Some(Coord {
                 x: 30.3,
                 y: 40.4,
-                z: None,
-                m: None,
+                z: 50.5,
             })),
         ]));
 
@@ -170,14 +167,12 @@ mod tests {
             Coord {
                 x: 10.,
                 y: 20.,
-                z: None,
-                m: None,
+                z: 30.,
             },
             Coord {
                 x: 30.,
                 y: 40.,
-                z: None,
-                m: None,
+                z: 50.,
             },
         ]));
 
@@ -185,26 +180,22 @@ mod tests {
             Coord {
                 x: 0.,
                 y: 0.,
-                z: None,
-                m: None,
+                z: 0.,
             },
             Coord {
                 x: 20.,
                 y: 40.,
-                z: None,
-                m: None,
+                z: 60.,
             },
             Coord {
                 x: 40.,
                 y: 0.,
-                z: None,
-                m: None,
+                z: -40.,
             },
             Coord {
                 x: 0.,
                 y: 0.,
-                z: None,
-                m: None,
+                z: 0.,
             },
         ])]));
 
@@ -213,28 +204,24 @@ mod tests {
                 Coord {
                     x: 10.1,
                     y: 20.2,
-                    z: None,
-                    m: None,
+                    z: 30.3,
                 },
                 Coord {
                     x: 30.3,
                     y: 40.4,
-                    z: None,
-                    m: None,
+                    z: 50.5,
                 },
             ]),
             LineString(vec![
                 Coord {
                     x: 50.5,
                     y: 60.6,
-                    z: None,
-                    m: None,
+                    z: 70.7,
                 },
                 Coord {
                     x: 70.7,
                     y: 80.8,
-                    z: None,
-                    m: None,
+                    z: 90.9,
                 },
             ]),
         ]));
@@ -244,52 +231,44 @@ mod tests {
                 Coord {
                     x: 0.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: 0.,
                 },
                 Coord {
                     x: 20.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 60.,
                 },
                 Coord {
                     x: 40.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: -40.,
                 },
                 Coord {
                     x: 0.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: 0.,
                 },
             ])]),
             Polygon(vec![LineString(vec![
                 Coord {
                     x: 40.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 40.,
                 },
                 Coord {
                     x: 20.,
                     y: 45.,
-                    z: None,
-                    m: None,
+                    z: -20.,
                 },
                 Coord {
                     x: 45.,
                     y: 30.,
-                    z: None,
-                    m: None,
+                    z: -45.,
                 },
                 Coord {
                     x: 40.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 40.,
                 },
             ])]),
         ]));
@@ -304,13 +283,13 @@ mod tests {
         ]);
 
         assert_eq!(
-            "GEOMETRYCOLLECTION(\
-             POINT(10 20),\
-             MULTIPOINT((10.1 20.2),(30.3 40.4)),\
-             LINESTRING(10 20,30 40),\
-             POLYGON((0 0,20 40,40 0,0 0)),\
-             MULTILINESTRING((10.1 20.2,30.3 40.4),(50.5 60.6,70.7 80.8)),\
-             MULTIPOLYGON(((0 0,20 40,40 0,0 0)),((40 40,20 45,45 30,40 40)))\
+            "GEOMETRYCOLLECTION Z(\
+             POINT Z(10 20 30),\
+             MULTIPOINT Z((10.1 20.2 30.3),(30.3 40.4 50.5)),\
+             LINESTRING Z(10 20 30,30 40 50),\
+             POLYGON Z((0 0 0,20 40 60,40 0 -40,0 0 0)),\
+             MULTILINESTRING Z((10.1 20.2 30.3,30.3 40.4 50.5),(50.5 60.6 70.7,70.7 80.8 90.9)),\
+             MULTIPOLYGON Z(((0 0 0,20 40 60,40 0 -40,0 0 0)),((40 40 40,20 45 -20,45 30 -45,40 40 40)))\
              )",
             format!("{}", geometrycollection)
         );

@@ -131,7 +131,7 @@ where
 {
     /// Convert from a WKT Coordinate to a [`geo_types::Coordinate`]
     fn from(coord: Coord<T>) -> geo_types::Coord<T> {
-        coord! { x: coord.x, y: coord.y }
+        coord! { x: coord.x, y: coord.y, z: coord.z }
     }
 }
 
@@ -144,18 +144,10 @@ where
     /// Fallibly convert from a WKT `POINT` to a [`geo_types::Point`]
     fn try_from(point: Point<T>) -> Result<Self, Self::Error> {
         match point.0 {
-            Some(coord) => Ok(Self::new(coord.x, coord.y)),
+            Some(coord) => Ok(Self::new(coord.x, coord.y, coord.z)),
             None => Err(Error::PointConversionError),
         }
     }
-}
-
-#[deprecated(since = "0.9.0", note = "use `geometry.try_into()` instead")]
-pub fn try_into_geometry<T>(geometry: &Wkt<T>) -> Result<geo_types::Geometry<T>, Error>
-where
-    T: CoordNum,
-{
-    geometry.clone().try_into()
 }
 
 impl<'a, T> From<&'a LineString<T>> for geo_types::Geometry<T>
@@ -284,18 +276,6 @@ where
     }
 }
 
-#[deprecated(since = "0.9.0", note = "use `geometry_collection.try_into()` instead")]
-pub fn try_into_geometry_collection<T>(
-    geometry_collection: &GeometryCollection<T>,
-) -> Result<geo_types::Geometry<T>, Error>
-where
-    T: CoordNum,
-{
-    Ok(geo_types::Geometry::GeometryCollection(
-        geometry_collection.clone().try_into()?,
-    ))
-}
-
 impl<T> TryFrom<GeometryCollection<T>> for geo_types::GeometryCollection<T>
 where
     T: CoordNum,
@@ -389,12 +369,11 @@ mod tests {
         let wkt = Wkt::from(Point(Some(Coord {
             x: 1.0,
             y: 2.0,
-            z: None,
-            m: None,
+            z: 3.0,
         })));
 
         let converted = geo_types::Geometry::try_from(wkt).unwrap();
-        let g_point: geo_types::Point<f64> = geo_types::Point::new(1.0, 2.0);
+        let g_point: geo_types::Point<f64> = geo_types::Point::new(1.0, 2.0, 3.0);
 
         assert_eq!(converted, geo_types::Geometry::Point(g_point));
     }
@@ -411,11 +390,10 @@ mod tests {
         let point = Wkt::from(Point(Some(Coord {
             x: 10.,
             y: 20.,
-            z: None,
-            m: None,
+            z: 30.,
         })));
 
-        let g_point: geo_types::Point<f64> = (10., 20.).into();
+        let g_point: geo_types::Point<f64> = (10., 20., 30.).into();
         assert_eq!(
             geo_types::Geometry::Point(g_point),
             point.try_into().unwrap()
@@ -438,18 +416,16 @@ mod tests {
             Coord {
                 x: 10.,
                 y: 20.,
-                z: None,
-                m: None,
+                z: 30.,
             },
             Coord {
-                x: 30.,
-                y: 40.,
-                z: None,
-                m: None,
+                x: 40.,
+                y: 50.,
+                z: 60.,
             },
         ])
         .into();
-        let g_linestring: geo_types::LineString<f64> = vec![(10., 20.), (30., 40.)].into();
+        let g_linestring: geo_types::LineString<f64> = vec![(10., 20., 30.), (40., 50., 60.)].into();
         assert_eq!(
             geo_types::Geometry::LineString(g_linestring),
             w_linestring.try_into().unwrap()
@@ -474,59 +450,51 @@ mod tests {
                 Coord {
                     x: 0.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: 0.,
                 },
                 Coord {
                     x: 20.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 60.,
                 },
                 Coord {
                     x: 40.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: -40.,
                 },
                 Coord {
                     x: 0.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: 0.,
                 },
             ]),
             LineString(vec![
                 Coord {
                     x: 5.,
                     y: 5.,
-                    z: None,
-                    m: None,
+                    z: 5.,
                 },
                 Coord {
                     x: 20.,
                     y: 30.,
-                    z: None,
-                    m: None,
+                    z: 40.,
                 },
                 Coord {
                     x: 30.,
                     y: 5.,
-                    z: None,
-                    m: None,
+                    z: -30.,
                 },
                 Coord {
                     x: 5.,
                     y: 5.,
-                    z: None,
-                    m: None,
+                    z: 5.,
                 },
             ]),
         ])
         .into();
         let g_polygon: geo_types::Polygon<f64> = geo_types::Polygon::new(
-            vec![(0., 0.), (20., 40.), (40., 0.), (0., 0.)].into(),
-            vec![vec![(5., 5.), (20., 30.), (30., 5.), (5., 5.)].into()],
+            vec![(0., 0., 0.), (20., 40., 60.), (40., 0., -40.), (0., 0., 0.)].into(),
+            vec![vec![(5., 5., 5.), (20., 30., 40.), (30., 5., -30.), (5., 5., 5.)].into()],
         );
         assert_eq!(
             geo_types::Geometry::Polygon(g_polygon),
@@ -551,35 +519,31 @@ mod tests {
                 Coord {
                     x: 10.,
                     y: 20.,
-                    z: None,
-                    m: None,
+                    z: 30.
                 },
                 Coord {
-                    x: 30.,
-                    y: 40.,
-                    z: None,
-                    m: None,
+                    x: 40.,
+                    y: 50.,
+                    z: 60.,
                 },
             ]),
             LineString(vec![
                 Coord {
-                    x: 50.,
-                    y: 60.,
-                    z: None,
-                    m: None,
-                },
-                Coord {
                     x: 70.,
                     y: 80.,
-                    z: None,
-                    m: None,
+                    z: 90.,
+                },
+                Coord {
+                    x: 100.,
+                    y: 110.,
+                    z: 120.,
                 },
             ]),
         ])
         .into();
         let g_multilinestring: geo_types::MultiLineString<f64> = geo_types::MultiLineString(vec![
-            vec![(10., 20.), (30., 40.)].into(),
-            vec![(50., 60.), (70., 80.)].into(),
+            vec![(10., 20., 30.), (40., 50., 60.)].into(),
+            vec![(70., 80., 90.), (100., 110., 120.)].into(),
         ]);
         assert_eq!(
             geo_types::Geometry::MultiLineString(g_multilinestring),
@@ -603,18 +567,16 @@ mod tests {
             Point(Some(Coord {
                 x: 10.,
                 y: 20.,
-                z: None,
-                m: None,
+                z: 25.,
             })),
             Point(Some(Coord {
                 x: 30.,
                 y: 40.,
-                z: None,
-                m: None,
+                z: 45.,
             })),
         ])
         .into();
-        let g_multipoint: geo_types::MultiPoint<f64> = vec![(10., 20.), (30., 40.)].into();
+        let g_multipoint: geo_types::MultiPoint<f64> = vec![(10., 20., 25.), (30., 40., 45.)].into();
         assert_eq!(
             geo_types::Geometry::MultiPoint(g_multipoint),
             w_multipoint.try_into().unwrap()
@@ -639,52 +601,44 @@ mod tests {
                     Coord {
                         x: 0.,
                         y: 0.,
-                        z: None,
-                        m: None,
+                        z: 0.,
                     },
                     Coord {
                         x: 20.,
                         y: 40.,
-                        z: None,
-                        m: None,
+                        z: -20.,
                     },
                     Coord {
                         x: 40.,
                         y: 0.,
-                        z: None,
-                        m: None,
+                        z: -40.,
                     },
                     Coord {
                         x: 0.,
                         y: 0.,
-                        z: None,
-                        m: None,
+                        z: 0.,
                     },
                 ]),
                 LineString(vec![
                     Coord {
                         x: 5.,
                         y: 5.,
-                        z: None,
-                        m: None,
+                        z: 5.,
                     },
                     Coord {
                         x: 20.,
                         y: 30.,
-                        z: None,
-                        m: None,
+                        z: -20.,
                     },
                     Coord {
                         x: 30.,
                         y: 5.,
-                        z: None,
-                        m: None,
+                        z: -30.,
                     },
                     Coord {
                         x: 5.,
                         y: 5.,
-                        z: None,
-                        m: None,
+                        z: 5.,
                     },
                 ]),
             ]),
@@ -692,26 +646,22 @@ mod tests {
                 Coord {
                     x: 40.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 40.,
                 },
                 Coord {
                     x: 20.,
                     y: 45.,
-                    z: None,
-                    m: None,
+                    z: -20.,
                 },
                 Coord {
                     x: 45.,
                     y: 30.,
-                    z: None,
-                    m: None,
+                    z: -45.,
                 },
                 Coord {
                     x: 40.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 40.,
                 },
             ])]),
         ])
@@ -719,11 +669,11 @@ mod tests {
 
         let g_multipolygon: geo_types::MultiPolygon<f64> = geo_types::MultiPolygon(vec![
             geo_types::Polygon::new(
-                vec![(0., 0.), (20., 40.), (40., 0.), (0., 0.)].into(),
-                vec![vec![(5., 5.), (20., 30.), (30., 5.), (5., 5.)].into()],
+                vec![(0., 0., 0.), (20., 40., -20.), (40., 0., -40.), (0., 0., 0.)].into(),
+                vec![vec![(5., 5., 5.), (20., 30., -20.), (30., 5., -30.), (5., 5., 5.)].into()],
             ),
             geo_types::Polygon::new(
-                vec![(40., 40.), (20., 45.), (45., 30.), (40., 40.)].into(),
+                vec![(40., 40., 40.), (20., 45., -20.), (45., 30., -45.), (40., 40., 40.)].into(),
                 vec![],
             ),
         ]);
@@ -749,8 +699,7 @@ mod tests {
         let w_point = Point(Some(Coord {
             x: 10.,
             y: 20.,
-            z: None,
-            m: None,
+            z: 30.,
         }))
         .into();
 
@@ -758,14 +707,12 @@ mod tests {
             Coord {
                 x: 10.,
                 y: 20.,
-                z: None,
-                m: None,
+                z: 30.,
             },
             Coord {
-                x: 30.,
-                y: 40.,
-                z: None,
-                m: None,
+                x: 40.,
+                y: 50.,
+                z: 60.,
             },
         ])
         .into();
@@ -774,26 +721,22 @@ mod tests {
             Coord {
                 x: 0.,
                 y: 0.,
-                z: None,
-                m: None,
+                z: 0.,
             },
             Coord {
                 x: 20.,
                 y: 40.,
-                z: None,
-                m: None,
+                z: 60.
             },
             Coord {
                 x: 40.,
                 y: 0.,
-                z: None,
-                m: None,
+                z: -40.,
             },
             Coord {
                 x: 0.,
                 y: 0.,
-                z: None,
-                m: None,
+                z: 0.,
             },
         ])])
         .into();
@@ -803,28 +746,24 @@ mod tests {
                 Coord {
                     x: 10.,
                     y: 20.,
-                    z: None,
-                    m: None,
+                    z: 30.,
                 },
                 Coord {
-                    x: 30.,
-                    y: 40.,
-                    z: None,
-                    m: None,
+                    x: 40.,
+                    y: 50.,
+                    z: 60.,
                 },
             ]),
             LineString(vec![
                 Coord {
-                    x: 50.,
-                    y: 60.,
-                    z: None,
-                    m: None,
-                },
-                Coord {
                     x: 70.,
                     y: 80.,
-                    z: None,
-                    m: None,
+                    z: 90.,
+                },
+                Coord {
+                    x: 100.,
+                    y: 110.,
+                    z: 120.,
                 },
             ]),
         ])
@@ -834,14 +773,12 @@ mod tests {
             Point(Some(Coord {
                 x: 10.,
                 y: 20.,
-                z: None,
-                m: None,
+                z: 30.,
             })),
             Point(Some(Coord {
-                x: 30.,
-                y: 40.,
-                z: None,
-                m: None,
+                x: 40.,
+                y: 50.,
+                z: 60.,
             })),
         ])
         .into();
@@ -851,52 +788,44 @@ mod tests {
                 Coord {
                     x: 0.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: 0.,
                 },
                 Coord {
                     x: 20.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 60.,
                 },
                 Coord {
                     x: 40.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: -40.,
                 },
                 Coord {
                     x: 0.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: 0.,
                 },
             ])]),
             Polygon(vec![LineString(vec![
                 Coord {
                     x: 40.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 40.,
                 },
                 Coord {
                     x: 20.,
                     y: 45.,
-                    z: None,
-                    m: None,
+                    z: -20.,
                 },
                 Coord {
                     x: 45.,
                     y: 30.,
-                    z: None,
-                    m: None,
+                    z: -45.,
                 },
                 Coord {
                     x: 40.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 40.,
                 },
             ])]),
         ])
@@ -912,24 +841,24 @@ mod tests {
         ])
         .into();
 
-        let g_point: geo_types::Point<f64> = (10., 20.).into();
-        let g_linestring: geo_types::LineString<f64> = vec![(10., 20.), (30., 40.)].into();
+        let g_point: geo_types::Point<f64> = (10., 20., 30.).into();
+        let g_linestring: geo_types::LineString<f64> = vec![(10., 20., 30.), (40., 50., 60.)].into();
         let g_polygon: geo_types::Polygon<f64> = geo_types::Polygon::new(
-            vec![(0., 0.), (20., 40.), (40., 0.), (0., 0.)].into(),
+            vec![(0., 0., 0.), (20., 40., 60.), (40., 0., -40.), (0., 0., 0.)].into(),
             vec![],
         );
         let g_multilinestring: geo_types::MultiLineString<f64> = geo_types::MultiLineString(vec![
-            vec![(10., 20.), (30., 40.)].into(),
-            vec![(50., 60.), (70., 80.)].into(),
+            vec![(10., 20., 30.), (40., 50., 60.)].into(),
+            vec![(70., 80., 90.), (100., 110., 120.)].into(),
         ]);
-        let g_multipoint: geo_types::MultiPoint<f64> = vec![(10., 20.), (30., 40.)].into();
+        let g_multipoint: geo_types::MultiPoint<f64> = vec![(10., 20., 30.), (40., 50., 60.)].into();
         let g_multipolygon: geo_types::MultiPolygon<f64> = geo_types::MultiPolygon(vec![
             geo_types::Polygon::new(
-                vec![(0., 0.), (20., 40.), (40., 0.), (0., 0.)].into(),
+                vec![(0., 0., 0.), (20., 40., 60.), (40., 0., -40.), (0., 0., 0.)].into(),
                 vec![],
             ),
             geo_types::Polygon::new(
-                vec![(40., 40.), (20., 45.), (45., 30.), (40., 40.)].into(),
+                vec![(40., 40., 40.), (20., 45., -20.), (45., 30., -45.), (40., 40., 40.)].into(),
                 vec![],
             ),
         ]);
@@ -953,7 +882,7 @@ mod tests {
     fn geom_collection_from_wkt_str() {
         // geometry collections have some special handling vs. other geometries, so we test them separately.
         let collection = geo_types::GeometryCollection::<f64>::try_from_wkt_str(
-            "GeometryCollection(POINT(1 2))",
+            "GeometryCollection Z(POINT Z(1 2 3))",
         )
         .unwrap();
         let point: geo_types::Point<_> = collection[0].clone().try_into().unwrap();
@@ -963,7 +892,7 @@ mod tests {
     #[test]
     fn geom_collection_from_invalid_wkt_str() {
         // geometry collections have some special handling vs. other geometries, so we test them separately.
-        let err = geo_types::GeometryCollection::<f64>::try_from_wkt_str("GeomColl(POINT(1 2))")
+        let err = geo_types::GeometryCollection::<f64>::try_from_wkt_str("GeomColl(POINT Z(1 2 3))")
             .unwrap_err();
         match err {
             Error::InvalidWKT(err_text) => assert_eq!(err_text, "Invalid type encountered"),
@@ -974,7 +903,7 @@ mod tests {
     #[test]
     fn geom_collection_from_other_wkt_str() {
         // geometry collections have some special handling vs. other geometries, so we test them separately.
-        let not_a_collection = geo_types::GeometryCollection::<f64>::try_from_wkt_str("POINT(1 2)");
+        let not_a_collection = geo_types::GeometryCollection::<f64>::try_from_wkt_str("POINT Z(1 2 3)");
         let err = not_a_collection.unwrap_err();
         match err {
             Error::MismatchedGeometry {
@@ -987,7 +916,7 @@ mod tests {
 
     #[test]
     fn from_invalid_wkt_str() {
-        let a_point_too_many = geo_types::Point::<f64>::try_from_wkt_str("PINT(1 2)");
+        let a_point_too_many = geo_types::Point::<f64>::try_from_wkt_str("PINT Z(1 2 3)");
         let err = a_point_too_many.unwrap_err();
         match err {
             Error::InvalidWKT(err_text) => assert_eq!(err_text, "Invalid type encountered"),
@@ -998,7 +927,7 @@ mod tests {
     #[test]
     fn from_other_geom_wkt_str() {
         let not_actually_a_line_string =
-            geo_types::LineString::<f64>::try_from_wkt_str("POINT(1 2)");
+            geo_types::LineString::<f64>::try_from_wkt_str("POINT Z(1 2 3)");
         let err = not_actually_a_line_string.unwrap_err();
         match err {
             Error::MismatchedGeometry {
@@ -1012,25 +941,11 @@ mod tests {
     #[test]
     fn integer_geometry() {
         use crate::to_wkt::ToWkt;
-        let point: geo_types::Point<i32> =
-            geo_types::Point::try_from_wkt_str("POINT(1 2)").unwrap();
-        assert_eq!(point, geo_types::Point::new(1, 2));
+        let point: geo_types::Point<f32> =
+            geo_types::Point::try_from_wkt_str("POINT Z(1 2 3)").unwrap();
+        assert_eq!(point, geo_types::Point::new(1.0, 2.0, 3.0));
 
         let wkt_string = point.wkt_string();
-        assert_eq!("POINT(1 2)", &wkt_string);
-    }
-
-    #[test]
-    fn integer_geometries_from_float() {
-        let wkt_str = "POINT(1.1 1.9)";
-
-        let _sanity_check = geo_types::Point::<f32>::try_from_wkt_str(wkt_str).unwrap();
-
-        let result = geo_types::Point::<i32>::try_from_wkt_str(wkt_str);
-        let err = result.unwrap_err();
-        assert_eq!(
-            err.to_string(),
-            "Invalid WKT: Unable to parse input number as the desired output type"
-        );
+        assert_eq!("POINT Z(1 2 3)", &wkt_string);
     }
 }

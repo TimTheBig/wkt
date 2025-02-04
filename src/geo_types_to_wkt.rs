@@ -11,9 +11,9 @@ use crate::{ToWkt, Wkt};
 /// use geo_types::{point, Geometry};
 /// use wkt::ToWkt;
 ///
-/// let geometry: Geometry<f64> = Geometry::Point(point!(x: 1., y: 2.));
+/// let geometry: Geometry<f64> = Geometry::Point(point!(x: 1., y: 2., z: 3.));
 ///
-/// assert_eq!(geometry.wkt_string(), "POINT(1 2)");
+/// assert_eq!(geometry.wkt_string(), "POINT Z(1 2 3)");
 /// ```
 impl<T> ToWkt<T> for geo_types::Geometry<T>
 where
@@ -40,9 +40,9 @@ where
 /// use geo_types::{point, Point};
 /// use wkt::ToWkt;
 ///
-/// let point: Point<f64> = point!(x: 1., y: 2.);
+/// let point: Point<f64> = point!(x: 1., y: 2., z: 3.);
 ///
-/// assert_eq!(point.wkt_string(), "POINT(1 2)");
+/// assert_eq!(point.wkt_string(), "POINT Z(1 2 3)");
 /// ```
 impl<T> ToWkt<T> for geo_types::Point<T>
 where
@@ -58,9 +58,9 @@ where
 /// use geo_types::{coord, Line};
 /// use wkt::ToWkt;
 ///
-/// let line = Line::<f64>::new(coord!(x: 1., y: 2.), coord!(x: 3., y: 4.));
+/// let line = Line::<f64>::new(coord!(x: 1., y: 2., z: 3.), coord!(x: 4., y: 5., z: 6.));
 ///
-/// assert_eq!(line.wkt_string(), "LINESTRING(1 2,3 4)");
+/// assert_eq!(line.wkt_string(), "LINESTRING Z(1 2 3,4 5 6)");
 /// ```
 impl<T> ToWkt<T> for geo_types::Line<T>
 where
@@ -76,9 +76,9 @@ where
 /// use geo_types::{line_string, LineString};
 /// use wkt::ToWkt;
 ///
-/// let line_string: LineString<f64> = line_string![(x: 1., y: 2.), (x: 3., y: 4.), (x: 5., y: 6.)];
+/// let line_string: LineString<f64> = line_string![(x: 1., y: 2., z: 3.), (x: 3., y: 4., z: 4.), (x: 5., y: 6., z: 5.)];
 ///
-/// assert_eq!(line_string.wkt_string(), "LINESTRING(1 2,3 4,5 6)");
+/// assert_eq!(line_string.wkt_string(), "LINESTRING Z(1 2 3,3 4 4,5 6 5)");
 /// ```
 impl<T> ToWkt<T> for geo_types::LineString<T>
 where
@@ -94,9 +94,9 @@ where
 /// use geo_types::{polygon, Polygon};
 /// use wkt::ToWkt;
 ///
-/// let polygon: Polygon<f64> = polygon![(x: 0., y: 0.), (x: 4., y: 0.), (x: 2., y: 4.), (x: 0., y: 0.)];
+/// let polygon: Polygon<f64> = polygon![(x: 0., y: 0., z: 0.), (x: 4., y: 0., z: -4.), (x: 2., y: 4., z: -2.), (x: 0., y: 0., z: 0.)];
 ///
-/// assert_eq!(polygon.wkt_string(), "POLYGON((0 0,4 0,2 4,0 0))");
+/// assert_eq!(polygon.wkt_string(), "POLYGON Z((0 0 0,4 0 -4,2 4 -2,0 0 0))");
 /// ```
 impl<T> ToWkt<T> for geo_types::Polygon<T>
 where
@@ -112,9 +112,9 @@ where
 /// use geo_types::{point, MultiPoint};
 /// use wkt::ToWkt;
 ///
-/// let multi_point: MultiPoint<f64> = MultiPoint::new(vec![point!(x: 0., y: 0.), point!(x: 4., y: 0.), point!(x: 2., y: 4.)]);
+/// let multi_point: MultiPoint<f64> = MultiPoint::new(vec![point!(x: 0., y: 0., z: 0.), point!(x: 4., y: 0., z: -4.), point!(x: 2., y: 4., z: -2.)]);
 ///
-/// assert_eq!(multi_point.wkt_string(), "MULTIPOINT((0 0),(4 0),(2 4))");
+/// assert_eq!(multi_point.wkt_string(), "MULTIPOINT Z((0 0 0),(4 0 -4),(2 4 -2))");
 /// ```
 impl<T> ToWkt<T> for geo_types::MultiPoint<T>
 where
@@ -130,11 +130,11 @@ where
 /// use geo_types::{line_string, LineString, MultiLineString};
 /// use wkt::ToWkt;
 ///
-/// let line_string_1: LineString<f64> = line_string![(x: 1., y: 2.), (x: 3., y: 4.), (x: 5., y: 6.)];
-/// let line_string_2: LineString<f64> = line_string![(x: 7., y: 8.), (x: 9., y: 0.)];
+/// let line_string_1: LineString<f64> = line_string![(x: 1., y: 2., z: 3.), (x: 4., y: 5., z: 6.), (x: 7., y: 8., z: 9.)];
+/// let line_string_2: LineString<f64> = line_string![(x: 7., y: 8., z: 9.), (x: 10., y: 11., z: 12.)];
 /// let multi_line_string: MultiLineString<f64> = MultiLineString::new(vec![line_string_1, line_string_2]);
 ///
-/// assert_eq!(multi_line_string.wkt_string(), "MULTILINESTRING((1 2,3 4,5 6),(7 8,9 0))");
+/// assert_eq!(multi_line_string.wkt_string(), "MULTILINESTRING Z((1 2 3,4 5 6,7 8 9),(7 8 9,10 11 12))");
 /// ```
 impl<T> ToWkt<T> for geo_types::MultiLineString<T>
 where
@@ -151,12 +151,12 @@ where
 /// use wkt::ToWkt;
 ///
 /// // triangle
-/// let polygon_1: Polygon<f64> = polygon![(x: 0., y: 0.), (x: 4., y: 0.), (x: 2., y: 4.), (x: 0., y: 0.)];
+/// let polygon_1: Polygon<f64> = polygon![(x: 0., y: 0., z: 0.), (x: 4., y: 0., z: -4.), (x: 2., y: 4., z: -2.), (x: 0., y: 0., z: 0.)];
 /// // square
-/// let polygon_2: Polygon<f64> = polygon![(x: 4., y: 4.), (x: 8., y: 4.), (x: 8., y: 8.), (x: 4., y: 8.), (x: 4., y: 4.)];
+/// let polygon_2: Polygon<f64> = polygon![(x: 4., y: 4., z: 4.), (x: 8., y: 4., z: -8.), (x: 8., y: 8., z: 8.), (x: 4., y: 8., z: -4.), (x: 4., y: 4., z: 4.)];
 /// let multi_polygon: MultiPolygon<f64> = MultiPolygon::new(vec![polygon_1, polygon_2]);
 ///
-/// assert_eq!(multi_polygon.wkt_string(), "MULTIPOLYGON(((0 0,4 0,2 4,0 0)),((4 4,8 4,8 8,4 8,4 4)))");
+/// assert_eq!(multi_polygon.wkt_string(), "MULTIPOLYGON Z(((0 0 0,4 0 -4,2 4 -2,0 0 0)),((4 4 4,8 4 -8,8 8 8,4 8 -4,4 4 4)))");
 /// ```
 impl<T> ToWkt<T> for geo_types::MultiPolygon<T>
 where
@@ -172,11 +172,11 @@ where
 /// use geo_types::{line_string, LineString, polygon, Polygon, GeometryCollection};
 /// use wkt::ToWkt;
 ///
-/// let polygon: Polygon<f64> = polygon![(x: 0., y: 0.), (x: 4., y: 0.), (x: 2., y: 4.), (x: 0., y: 0.)];
-/// let line_string: LineString<f64> = line_string![(x: 1., y: 2.), (x: 3., y: 4.), (x: 5., y: 6.)];
-/// let geometry_collection: GeometryCollection<f64> = GeometryCollection::new_from(vec![polygon.into(), line_string.into()]);
+/// let polygon: Polygon<f64> = polygon![(x: 0., y: 0., z: 0.), (x: 4., y: 0., z: -4.), (x: 2., y: 4., z: 6.), (x: 0., y: 0., z: 0.)];
+/// let line_string: LineString<f64> = line_string![(x: 1., y: 2., z: 3.), (x: 4., y: 5., z: 6.), (x: 7., y: 8., z: 9.)];
+/// let geometry_collection: GeometryCollection<f64> = GeometryCollection::new(vec![polygon.into(), line_string.into()]);
 ///
-/// assert_eq!(geometry_collection.wkt_string(), "GEOMETRYCOLLECTION(POLYGON((0 0,4 0,2 4,0 0)),LINESTRING(1 2,3 4,5 6))");
+/// assert_eq!(geometry_collection.wkt_string(), "GEOMETRYCOLLECTION Z(POLYGON Z((0 0 0,4 0 -4,2 4 6,0 0 0)),LINESTRING Z(1 2 3,4 5 6,7 8 9))");
 /// ```
 impl<T> ToWkt<T> for geo_types::GeometryCollection<T>
 where
@@ -192,9 +192,9 @@ where
 /// use geo_types::{coord, Rect};
 /// use wkt::ToWkt;
 ///
-/// let rect: Rect<f64> = Rect::new(coord!(x: 4., y: 4.), coord!(x: 8., y: 8.));
+/// let rect: Rect<f64> = Rect::new(coord!(x: 4., y: 4., z: 4.), coord!(x: 8., y: 8., z: 8.));
 ///
-/// assert_eq!(rect.wkt_string(), "POLYGON((4 4,4 8,8 8,8 4,4 4))");
+/// assert_eq!(rect.wkt_string(), "POLYGON Z((4 4 8,4 8 8,8 8 8,8 4 8,8 4 4,4 4 4,4 8 4,8 8 4,4 4 8))");
 /// ```
 impl<T> ToWkt<T> for geo_types::Rect<T>
 where
@@ -210,9 +210,9 @@ where
 /// use geo_types::{coord, Triangle};
 /// use wkt::ToWkt;
 ///
-/// let triangle: Triangle<f64> = Triangle::new(coord!(x: 0., y: 0.), coord!(x: 4., y: 0.), coord!(x: 2., y: 4.));
+/// let triangle: Triangle<f64> = Triangle::new(coord!(x: 0., y: 0., z: 0.), coord!(x: 4., y: 0., z: 4.), coord!(x: 2., y: 4., z: 2.));
 ///
-/// assert_eq!(triangle.wkt_string(), "POLYGON((0 0,4 0,2 4,0 0))");
+/// assert_eq!(triangle.wkt_string(), "POLYGON Z((0 0 0,4 0 4,2 4 2,0 0 0))");
 /// ```
 impl<T> ToWkt<T> for geo_types::Triangle<T>
 where
@@ -230,8 +230,7 @@ where
     Coord {
         x: g_point.x,
         y: g_point.y,
-        z: None,
-        m: None,
+        z: g_point.z,
     }
 }
 
@@ -421,17 +420,11 @@ mod tests {
     use crate::ToWkt;
 
     #[test]
-    fn integer_geom() {
-        let point = geo_types::Point::new(1i32, 2i32);
-        assert_eq!("POINT(1 2)", &point.wkt_string());
-    }
-
-    #[test]
     fn float_geom() {
-        let point = geo_types::Point::new(1f32, 2f32);
-        assert_eq!("POINT(1 2)", &point.wkt_string());
+        let point = geo_types::Point::new(1f32, 2f32, 3f32);
+        assert_eq!("POINT Z(1 2 3)", &point.wkt_string());
 
-        let point = geo_types::Point::new(1.1f32, 2.9f32);
-        assert_eq!("POINT(1.1 2.9)", &point.wkt_string());
+        let point = geo_types::Point::new(1.1, 2.9, 3.8);
+        assert_eq!("POINT Z(1.1 2.9 3.8)", &point.wkt_string());
     }
 }

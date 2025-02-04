@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn basic_multipolygon() {
-        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOLYGON (((8 4)), ((4 0)))")
+        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOLYGON Z(((8 4 6)), ((4 0 9)))")
             .ok()
             .unwrap();
         let polygons = match wkt {
@@ -141,52 +141,44 @@ mod tests {
                     Coord {
                         x: 0.,
                         y: 0.,
-                        z: None,
-                        m: None,
+                        z: 0.,
                     },
                     Coord {
                         x: 20.,
                         y: 40.,
-                        z: None,
-                        m: None,
+                        z: 60.,
                     },
                     Coord {
                         x: 40.,
                         y: 0.,
-                        z: None,
-                        m: None,
+                        z: -40.,
                     },
                     Coord {
                         x: 0.,
                         y: 0.,
-                        z: None,
-                        m: None,
+                        z: 0.,
                     },
                 ]),
                 LineString(vec![
                     Coord {
                         x: 5.,
                         y: 5.,
-                        z: None,
-                        m: None,
+                        z: 5.,
                     },
                     Coord {
                         x: 20.,
                         y: 30.,
-                        z: None,
-                        m: None,
+                        z: 40.,
                     },
                     Coord {
                         x: 30.,
                         y: 5.,
-                        z: None,
-                        m: None,
+                        z: -30.,
                     },
                     Coord {
                         x: 5.,
                         y: 5.,
-                        z: None,
-                        m: None,
+                        z: 5.,
                     },
                 ]),
             ]),
@@ -194,32 +186,28 @@ mod tests {
                 Coord {
                     x: 40.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 40.,
                 },
                 Coord {
                     x: 20.,
                     y: 45.,
-                    z: None,
-                    m: None,
+                    z: -20.,
                 },
                 Coord {
                     x: 45.,
                     y: 30.,
-                    z: None,
-                    m: None,
+                    z: -45.,
                 },
                 Coord {
                     x: 40.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 40.,
                 },
             ])]),
         ]);
 
         assert_eq!(
-            "MULTIPOLYGON(((0 0,20 40,40 0,0 0),(5 5,20 30,30 5,5 5)),((40 40,20 45,45 30,40 40)))",
+            "MULTIPOLYGON Z(((0 0 0,20 40 60,40 0 -40,0 0 0),(5 5 5,20 30 40,30 5 -30,5 5 5)),((40 40 40,20 45 -20,45 30 -45,40 40 40)))",
             format!("{}", multipolygon)
         );
     }

@@ -32,25 +32,23 @@
 //! # Examples
 //!
 //! ## Read `geo_types` from a WKT string
-#![cfg_attr(feature = "geo-types", doc = "```")]
-#![cfg_attr(not(feature = "geo-types"), doc = "```ignore")]
+//! ```
 //! // This example requires the geo-types feature (on by default).
 //! use wkt::TryFromWkt;
 //! use geo_types::Point;
 //!
-//! let point: Point<f64> = Point::try_from_wkt_str("POINT(10 20)").unwrap();
+//! let point: Point<f64> = Point::try_from_wkt_str("POINT Z(10 20 30)").unwrap();
 //! assert_eq!(point.y(), 20.0);
 //! ```
 //!
 //! ## Write `geo_types` to a WKT string
-#![cfg_attr(feature = "geo-types", doc = "```")]
-#![cfg_attr(not(feature = "geo-types"), doc = "```ignore")]
+//! ```
 //! // This example requires the geo-types feature (on by default).
 //! use wkt::ToWkt;
 //! use geo_types::Point;
 //!
-//! let point: Point<f64> = Point::new(1.0, 2.0);
-//! assert_eq!(point.wkt_string(), "POINT(1 2)");
+//! let point: Point<f64> = Point::new(1.0, 2.0, 3.0);
+//! assert_eq!(point.wkt_string(), "POINT Z(1 2 3)");
 //! ```
 //!
 //! ## Read or write your own geometry types
@@ -81,7 +79,7 @@
 //!     assert!(matches!(geom.as_type(), GeometryType::LineString(_)))
 //! }
 //!
-//! let wktls: Wkt<f64> = Wkt::from_str("LINESTRING(10 20, 20 30)").unwrap();
+//! let wktls: Wkt<f64> = Wkt::from_str("LINESTRING Z(10 20 30, 20 30 40)").unwrap();
 //! is_line_string(&wktls);
 //! ```
 //!
@@ -124,17 +122,14 @@ mod infer_type;
 
 pub use infer_type::infer_type;
 
-#[cfg(feature = "geo-types")]
 extern crate geo_types;
 
 pub use crate::to_wkt::ToWkt;
 
-#[cfg(feature = "geo-types")]
-#[deprecated(note = "renamed module to `wkt::geo_types_from_wkt`")]
 pub mod conversion;
-#[cfg(feature = "geo-types")]
+
 pub mod geo_types_from_wkt;
-#[cfg(feature = "geo-types")]
+
 mod geo_types_to_wkt;
 
 #[cfg(feature = "serde")]
@@ -147,19 +142,19 @@ pub use deserialize::deserialize_wkt;
 mod from_wkt;
 pub use from_wkt::TryFromWkt;
 
-#[cfg(all(feature = "serde", feature = "geo-types"))]
+#[cfg(feature = "serde")]
 #[allow(deprecated)]
 pub use deserialize::geo_types::deserialize_geometry;
 
-#[cfg(all(feature = "serde", feature = "geo-types"))]
+#[cfg(feature = "serde")]
 #[deprecated(
     since = "0.10.2",
     note = "instead: use wkt::deserialize::geo_types::deserialize_point"
 )]
 pub use deserialize::geo_types::deserialize_point;
 
-pub trait WktNum: Num + NumCast + PartialOrd + PartialEq + Copy + fmt::Debug {}
-impl<T> WktNum for T where T: Num + NumCast + PartialOrd + PartialEq + Copy + fmt::Debug {}
+pub trait WktNum: Num + NumCast + PartialOrd + PartialEq + Copy + fmt::Debug + Float {}
+impl<T> WktNum for T where T: Num + NumCast + PartialOrd + PartialEq + Copy + fmt::Debug + Float {}
 
 pub trait WktFloat: WktNum + Float {}
 impl<T> WktFloat for T where T: WktNum + Float {}
@@ -196,24 +191,10 @@ where
                 let x = <Point<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
                 x.map(|y| y.into())
             }
-            w if w.eq_ignore_ascii_case("POINTZ") => {
+            w if w.eq_ignore_ascii_case("POINTZ") | w.eq_ignore_ascii_case("POINTM") => {
                 let x = <Point<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("POINTM") => {
-                let x = <Point<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYM),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("POINTZM") => {
-                let x = <Point<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYZM),
                 );
                 x.map(|y| y.into())
             }
@@ -221,24 +202,10 @@ where
                 let x = <LineString<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
                 x.map(|y| y.into())
             }
-            w if w.eq_ignore_ascii_case("LINESTRINGZ") => {
+            w if w.eq_ignore_ascii_case("LINESTRINGZ") | w.eq_ignore_ascii_case("LINESTRINGM") => {
                 let x = <LineString<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("LINESTRINGM") => {
-                let x = <LineString<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYM),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("LINESTRINGZM") => {
-                let x = <LineString<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYZM),
                 );
                 x.map(|y| y.into())
             }
@@ -246,24 +213,10 @@ where
                 let x = <Polygon<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
                 x.map(|y| y.into())
             }
-            w if w.eq_ignore_ascii_case("POLYGONZ") => {
+            w if w.eq_ignore_ascii_case("POLYGONZ") | w.eq_ignore_ascii_case("POLYGONM") => {
                 let x = <Polygon<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("POLYGONM") => {
-                let x = <Polygon<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYM),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("POLYGONZM") => {
-                let x = <Polygon<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYZM),
                 );
                 x.map(|y| y.into())
             }
@@ -271,24 +224,10 @@ where
                 let x = <MultiPoint<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
                 x.map(|y| y.into())
             }
-            w if w.eq_ignore_ascii_case("MULTIPOINTZ") => {
+            w if w.eq_ignore_ascii_case("MULTIPOINTZ") | w.eq_ignore_ascii_case("MULTIPOINTM") => {
                 let x = <MultiPoint<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("MULTIPOINTM") => {
-                let x = <MultiPoint<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYM),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("MULTIPOINTZM") => {
-                let x = <MultiPoint<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYZM),
                 );
                 x.map(|y| y.into())
             }
@@ -297,24 +236,10 @@ where
                     <MultiLineString<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
                 x.map(|y| y.into())
             }
-            w if w.eq_ignore_ascii_case("MULTILINESTRINGZ") => {
+            w if w.eq_ignore_ascii_case("MULTILINESTRINGZ") | w.eq_ignore_ascii_case("MULTILINESTRINGM") => {
                 let x = <MultiLineString<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("MULTILINESTRINGM") => {
-                let x = <MultiLineString<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYM),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("MULTILINESTRINGZM") => {
-                let x = <MultiLineString<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYZM),
                 );
                 x.map(|y| y.into())
             }
@@ -322,24 +247,10 @@ where
                 let x = <MultiPolygon<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
                 x.map(|y| y.into())
             }
-            w if w.eq_ignore_ascii_case("MULTIPOLYGONZ") => {
+            w if w.eq_ignore_ascii_case("MULTIPOLYGONZ") | w.eq_ignore_ascii_case("MULTIPOLYGONM") => {
                 let x = <MultiPolygon<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("MULTIPOLYGONM") => {
-                let x = <MultiPolygon<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYM),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("MULTIPOLYGONZM") => {
-                let x = <MultiPolygon<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYZM),
                 );
                 x.map(|y| y.into())
             }
@@ -348,24 +259,10 @@ where
                     <GeometryCollection<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
                 x.map(|y| y.into())
             }
-            w if w.eq_ignore_ascii_case("GEOMETRYCOLLECTIONZ") => {
+            w if w.eq_ignore_ascii_case("GEOMETRYCOLLECTIONZ") | w.eq_ignore_ascii_case("GEOMETRYCOLLECTIONM") => {
                 let x = <GeometryCollection<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("GEOMETRYCOLLECTIONM") => {
-                let x = <GeometryCollection<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYM),
-                );
-                x.map(|y| y.into())
-            }
-            w if w.eq_ignore_ascii_case("GEOMETRYCOLLECTIONZM") => {
-                let x = <GeometryCollection<T> as FromTokens<T>>::from_tokens_with_header(
-                    tokens,
-                    Some(Dimension::XYZM),
                 );
                 x.map(|y| y.into())
             }
@@ -376,7 +273,7 @@ where
 
 impl<T> fmt::Display for Wkt<T>
 where
-    T: WktNum + fmt::Display,
+    T: WktNum + fmt::Display + Float,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         Ok(write_geometry(f, self)?)
@@ -781,7 +678,6 @@ where
         match tokens.next().transpose()? {
             Some(Token::ParenOpen) => (),
             Some(Token::Word(ref s)) if s.eq_ignore_ascii_case("EMPTY") => {
-                // TODO: expand this to support Z EMPTY
                 // Maybe create a DefaultXY, DefaultXYZ trait etc for each geometry type, and then
                 // here match on the dim to decide which default trait to use.
                 return Ok(Default::default());
@@ -877,52 +773,37 @@ mod tests {
 
     #[test]
     fn test_points() {
-        // point(x, y)
-        let wkt = <Wkt<f64>>::from_str("POINT (10 20.1)").ok().unwrap();
-        match wkt {
-            Wkt::Point(Point(Some(coord))) => {
-                assert_eq!(coord.x, 10.0);
-                assert_eq!(coord.y, 20.1);
-                assert_eq!(coord.z, None);
-                assert_eq!(coord.m, None);
-            }
-            _ => panic!("excepted to be parsed as a POINT"),
-        }
-
         // point(x, y, z)
         let wkt = <Wkt<f64>>::from_str("POINT Z (10 20.1 5)").ok().unwrap();
         match wkt {
             Wkt::Point(Point(Some(coord))) => {
                 assert_eq!(coord.x, 10.0);
                 assert_eq!(coord.y, 20.1);
-                assert_eq!(coord.z, Some(5.0));
-                assert_eq!(coord.m, None);
+                assert_eq!(coord.z, 5.0);
             }
             _ => panic!("excepted to be parsed as a POINT"),
         }
 
-        // point(x, y, m)
-        let wkt = <Wkt<f64>>::from_str("POINT M (10 20.1 80)").ok().unwrap();
+        // point(x, y, z)
+        let wkt = <Wkt<f64>>::from_str("POINT Z (10 20.1 80)").ok().unwrap();
         match wkt {
             Wkt::Point(Point(Some(coord))) => {
                 assert_eq!(coord.x, 10.0);
                 assert_eq!(coord.y, 20.1);
-                assert_eq!(coord.z, None);
-                assert_eq!(coord.m, Some(80.0));
+                assert_eq!(coord.z, 80.0);
             }
             _ => panic!("excepted to be parsed as a POINT"),
         }
 
-        // point(x, y, z, m)
-        let wkt = <Wkt<f64>>::from_str("POINT ZM (10 20.1 5 80)")
+        // point(x, y, z)
+        let wkt = <Wkt<f64>>::from_str("POINT Z (10 20.1 5)")
             .ok()
             .unwrap();
         match wkt {
             Wkt::Point(Point(Some(coord))) => {
                 assert_eq!(coord.x, 10.0);
                 assert_eq!(coord.y, 20.1);
-                assert_eq!(coord.z, Some(5.0));
-                assert_eq!(coord.m, Some(80.0));
+                assert_eq!(coord.z, 5.0);
             }
             _ => panic!("excepted to be parsed as a POINT"),
         }
@@ -930,7 +811,7 @@ mod tests {
 
     #[test]
     fn support_jts_linearring() {
-        let wkt: Wkt<f64> = Wkt::from_str("linearring (10 20, 30 40)").ok().unwrap();
+        let wkt: Wkt<f64> = Wkt::from_str("linearring Z(10 20 30, 40 50 60)").ok().unwrap();
         match wkt {
             Wkt::LineString(_ls) => (),
             _ => panic!("expected to be parsed as a LINESTRING"),
@@ -942,19 +823,18 @@ mod tests {
         let g = Wkt::Point(Point(Some(Coord {
             x: 1.0,
             y: 2.0,
-            m: None,
-            z: None,
+            z: 3.0,
         })));
         assert_eq!(
             format!("{:?}", g),
-            "Point(Point(Some(Coord { x: 1.0, y: 2.0, z: None, m: None })))"
+            "Point(Point(Some(Coord { x: 1.0, y: 2.0, z: 3.0 })))"
         );
     }
 
     #[test]
     fn test_display_on_wkt() {
-        let wktls: Wkt<f64> = Wkt::from_str("LINESTRING(10 20, 20 30)").unwrap();
+        let wktls: Wkt<f64> = Wkt::from_str("LINESTRING Z(10 20 30, 40 50 60)").unwrap();
 
-        assert_eq!(wktls.to_string(), "LINESTRING(10 20,20 30)");
+        assert_eq!(wktls.to_string(), "LINESTRING Z(10 20 30,40 50 60)");
     }
 }

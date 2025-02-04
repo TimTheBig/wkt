@@ -26,8 +26,7 @@ where
 {
     pub x: T,
     pub y: T,
-    pub z: Option<T>,
-    pub m: Option<T>,
+    pub z: T,
 }
 
 impl<T> FromTokens<T> for Coord<T>
@@ -43,41 +42,18 @@ where
             Some(Token::Number(n)) => n,
             _ => return Err("Expected a number for the Y coordinate"),
         };
-
-        let mut z = None;
-        let mut m = None;
+        let z = match tokens.next().transpose()? {
+            Some(Token::Number(n)) => n,
+            _ => return Err("Expected a number for the Z coordinate"),
+        };
 
         match dim {
-            Dimension::XY => (),
-            Dimension::XYZ => match tokens.next().transpose()? {
-                Some(Token::Number(n)) => {
-                    z = Some(n);
-                }
-                _ => return Err("Expected a number for the Z coordinate"),
-            },
-            Dimension::XYM => match tokens.next().transpose()? {
-                Some(Token::Number(n)) => {
-                    m = Some(n);
-                }
-                _ => return Err("Expected a number for the M coordinate"),
-            },
-            Dimension::XYZM => {
-                match tokens.next().transpose()? {
-                    Some(Token::Number(n)) => {
-                        z = Some(n);
-                    }
-                    _ => return Err("Expected a number for the Z coordinate"),
-                }
-                match tokens.next().transpose()? {
-                    Some(Token::Number(n)) => {
-                        m = Some(n);
-                    }
-                    _ => return Err("Expected a number for the M coordinate"),
-                }
-            }
+            Dimension::XY => { return Err("x, y, and z fields are expected") },
+            Dimension::XYZ => (),
+            _ => { return Err("x, y, and z fields are expected") }
         }
 
-        Ok(Coord { x, y, z, m })
+        Ok(Coord { x, y, z })
     }
 }
 
@@ -85,12 +61,7 @@ impl<T: WktNum> CoordTrait for Coord<T> {
     type T = T;
 
     fn dim(&self) -> geo_traits::Dimensions {
-        match (self.z.is_some(), self.m.is_some()) {
-            (true, true) => geo_traits::Dimensions::Xyzm,
-            (true, false) => geo_traits::Dimensions::Xyz,
-            (false, true) => geo_traits::Dimensions::Xym,
-            (false, false) => geo_traits::Dimensions::Xy,
-        }
+        geo_traits::Dimensions::Xyz
     }
 
     fn x(&self) -> Self::T {
@@ -101,28 +72,15 @@ impl<T: WktNum> CoordTrait for Coord<T> {
         self.y
     }
 
+    fn z(&self) -> Self::T {
+        self.z
+    }
+
     fn nth_or_panic(&self, n: usize) -> Self::T {
-        let has_z = self.z.is_some();
-        let has_m = self.m.is_some();
         match n {
             0 => self.x,
             1 => self.y,
-            2 => {
-                if has_z {
-                    self.z.unwrap()
-                } else if has_m {
-                    self.m.unwrap()
-                } else {
-                    panic!("n out of range")
-                }
-            }
-            3 => {
-                if has_z && has_m {
-                    self.m.unwrap()
-                } else {
-                    panic!("n out of range")
-                }
-            }
+            2 => self.z,
             _ => panic!("n out of range"),
         }
     }
@@ -132,12 +90,7 @@ impl<T: WktNum> CoordTrait for &Coord<T> {
     type T = T;
 
     fn dim(&self) -> geo_traits::Dimensions {
-        match (self.z.is_some(), self.m.is_some()) {
-            (true, true) => geo_traits::Dimensions::Xyzm,
-            (true, false) => geo_traits::Dimensions::Xyz,
-            (false, true) => geo_traits::Dimensions::Xym,
-            (false, false) => geo_traits::Dimensions::Xy,
-        }
+        geo_traits::Dimensions::Xyz
     }
 
     fn x(&self) -> Self::T {
@@ -148,28 +101,15 @@ impl<T: WktNum> CoordTrait for &Coord<T> {
         self.y
     }
 
+    fn z(&self) -> Self::T {
+        self.z
+    }
+
     fn nth_or_panic(&self, n: usize) -> Self::T {
-        let has_z = self.z.is_some();
-        let has_m = self.m.is_some();
         match n {
             0 => self.x,
             1 => self.y,
-            2 => {
-                if has_z {
-                    self.z.unwrap()
-                } else if has_m {
-                    self.m.unwrap()
-                } else {
-                    panic!("n out of range")
-                }
-            }
-            3 => {
-                if has_z && has_m {
-                    self.m.unwrap()
-                } else {
-                    panic!("n out of range")
-                }
-            }
+            2 => self.z,
             _ => panic!("n out of range"),
         }
     }

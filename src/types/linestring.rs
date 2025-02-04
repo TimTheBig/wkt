@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn basic_linestring() {
-        let wkt = Wkt::from_str("LINESTRING (10 -20, -0 -0.5)").ok().unwrap();
+        let wkt = Wkt::from_str("LINESTRING Z(10 -20 15, -0 -0.5 -1)").ok().unwrap();
         let coords = match wkt {
             Wkt::LineString(LineString(coords)) => coords,
             _ => unreachable!(),
@@ -120,18 +120,16 @@ mod tests {
 
         assert_eq!(10.0, coords[0].x);
         assert_eq!(-20.0, coords[0].y);
-        assert_eq!(None, coords[0].z);
-        assert_eq!(None, coords[0].m);
+        assert_eq!(15.0, coords[0].z);
 
         assert_eq!(0.0, coords[1].x);
         assert_eq!(-0.5, coords[1].y);
-        assert_eq!(None, coords[1].z);
-        assert_eq!(None, coords[1].m);
+        assert_eq!(-1.0, coords[1].z);
     }
 
     #[test]
     fn basic_linestring_z() {
-        let wkt = Wkt::from_str("LINESTRING Z (-117 33 2, -116 34 4)")
+        let wkt = Wkt::from_str("LINESTRING Z(-117 33 2, -116 34 4)")
             .ok()
             .unwrap();
         let coords = match wkt {
@@ -142,79 +140,11 @@ mod tests {
 
         assert_eq!(-117.0, coords[0].x);
         assert_eq!(33.0, coords[0].y);
-        assert_eq!(Some(2.0), coords[0].z);
-        assert_eq!(None, coords[0].m);
+        assert_eq!(2.0, coords[0].z);
 
         assert_eq!(-116.0, coords[1].x);
         assert_eq!(34.0, coords[1].y);
-        assert_eq!(Some(4.0), coords[1].z);
-        assert_eq!(None, coords[1].m);
-    }
-
-    #[test]
-    fn basic_linestring_m() {
-        let wkt = Wkt::from_str("LINESTRING M (-117 33 2, -116 34 4)")
-            .ok()
-            .unwrap();
-        let coords = match wkt {
-            Wkt::LineString(LineString(coords)) => coords,
-            _ => unreachable!(),
-        };
-        assert_eq!(2, coords.len());
-
-        assert_eq!(-117.0, coords[0].x);
-        assert_eq!(33.0, coords[0].y);
-        assert_eq!(None, coords[0].z);
-        assert_eq!(Some(2.0), coords[0].m);
-
-        assert_eq!(-116.0, coords[1].x);
-        assert_eq!(34.0, coords[1].y);
-        assert_eq!(None, coords[1].z);
-        assert_eq!(Some(4.0), coords[1].m);
-    }
-
-    #[test]
-    fn basic_linestring_zm() {
-        let wkt = Wkt::from_str("LINESTRING ZM (-117 33 2 3, -116 34 4 5)")
-            .ok()
-            .unwrap();
-        let coords = match wkt {
-            Wkt::LineString(LineString(coords)) => coords,
-            _ => unreachable!(),
-        };
-        assert_eq!(2, coords.len());
-
-        assert_eq!(-117.0, coords[0].x);
-        assert_eq!(33.0, coords[0].y);
-        assert_eq!(Some(2.0), coords[0].z);
-        assert_eq!(Some(3.0), coords[0].m);
-
-        assert_eq!(-116.0, coords[1].x);
-        assert_eq!(34.0, coords[1].y);
-        assert_eq!(Some(4.0), coords[1].z);
-        assert_eq!(Some(5.0), coords[1].m);
-    }
-
-    #[test]
-    fn basic_linestring_zm_one_word() {
-        let wkt = Wkt::from_str("LINESTRINGZM (-117 33 2 3, -116 34 4 5)")
-            .ok()
-            .unwrap();
-        let coords = match wkt {
-            Wkt::LineString(LineString(coords)) => coords,
-            _ => unreachable!(),
-        };
-        assert_eq!(2, coords.len());
-
-        assert_eq!(-117.0, coords[0].x);
-        assert_eq!(33.0, coords[0].y);
-        assert_eq!(Some(2.0), coords[0].z);
-        assert_eq!(Some(3.0), coords[0].m);
-
-        assert_eq!(-116.0, coords[1].x);
-        assert_eq!(34.0, coords[1].y);
-        assert_eq!(Some(4.0), coords[1].z);
-        assert_eq!(Some(5.0), coords[1].m);
+        assert_eq!(4.0, coords[1].z);
     }
 
     #[test]
@@ -230,17 +160,15 @@ mod tests {
             Coord {
                 x: 10.1,
                 y: 20.2,
-                z: None,
-                m: None,
+                z: 30.3,
             },
             Coord {
                 x: 30.3,
                 y: 40.4,
-                z: None,
-                m: None,
+                z: 50.5,
             },
         ]);
 
-        assert_eq!("LINESTRING(10.1 20.2,30.3 40.4)", format!("{}", linestring));
+        assert_eq!("LINESTRING Z(10.1 20.2 30.3,30.3 40.4 50.5)", format!("{}", linestring));
     }
 }

@@ -51,24 +51,22 @@ where
     fn to_wkt(&self) -> Wkt<T>;
 
     /// Serialize as a WKT string
-    #[cfg_attr(feature = "geo-types", doc = "```")]
-    #[cfg_attr(not(feature = "geo-types"), doc = "```ignore")]
+    /// ```
     /// // This example requires the geo-types feature (on by default).
     /// use wkt::ToWkt;
-    /// let point: geo_types::Point<f64> = geo_types::point!(x: 1.2, y: 3.4);
-    /// assert_eq!("POINT(1.2 3.4)", &point.wkt_string());
+    /// let point: geo_types::Point<f64> = geo_types::point!(x: 1.2, y: 3.4, z: 5.9);
+    /// assert_eq!("POINT Z(1.2 3.4 5.9)", &point.wkt_string());
     /// ```
     fn wkt_string(&self) -> String {
         self.to_wkt().to_string()
     }
 
     /// Write a WKT string to a [`File`](std::fs::File), or anything else that implements [`Write`](std::io::Write).
-    #[cfg_attr(feature = "geo-types", doc = "```")]
-    #[cfg_attr(not(feature = "geo-types"), doc = "```ignore")]
+    /// ```
     /// // This example requires the geo-types feature (on by default).
     /// use wkt::ToWkt;
     /// use std::fs::File;
-    /// let point: geo_types::Point<f64> = geo_types::point!(x: 1.2, y: 3.4);
+    /// let point: geo_types::Point<f64> = geo_types::point!(x: 1.2, y: 3.4, z: 7.5);
     ///
     /// // use a vec as a fake "file" for the purpose of example, but you could equally replace the
     /// // following with:
@@ -78,7 +76,7 @@ where
     /// point.write_wkt(&mut file).unwrap();
     /// let wkt_string = String::from_utf8(file).unwrap();
     ///
-    /// assert_eq!(wkt_string, "POINT(1.2 3.4)");
+    /// assert_eq!(wkt_string, "POINT Z(1.2 3.4 7.5)");
     /// ```
     fn write_wkt(&self, writer: impl io::Write) -> io::Result<()> {
         let mut writer_wrapper = WriterWrapper::new(writer);
@@ -99,7 +97,6 @@ where
 mod tests {
     use super::*;
 
-    #[cfg(feature = "geo-types")]
     #[test]
     fn write_wkt_error_handling() {
         struct FailingWriter;
@@ -116,7 +113,7 @@ mod tests {
             }
         }
 
-        let point = geo_types::Point::new(1.2, 3.4);
+        let point = geo_types::Point::new(1.2, 3.4, 7.5);
         let err = point.write_wkt(FailingWriter).unwrap_err();
         assert_eq!(err.to_string(), "FailingWriter always fails");
     }

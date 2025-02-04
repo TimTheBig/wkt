@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn basic_multipoint() {
-        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOINT ((8 4), (4 0))").ok().unwrap();
+        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOINT Z((8 4 6), (4 0 3))").ok().unwrap();
         let points = match wkt {
             Wkt::MultiPoint(MultiPoint(points)) => points,
             _ => unreachable!(),
@@ -125,8 +125,8 @@ mod tests {
     }
 
     #[test]
-    fn basic_multipoint_zm() {
-        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOINT ZM (0 0 4 3, 1 2 4 5)")
+    fn basic_multipoint_z() {
+        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOINT Z (0 0 4, 1 2 4)")
             .ok()
             .unwrap();
         let points = match wkt {
@@ -137,18 +137,16 @@ mod tests {
 
         assert_eq!(0.0, points[0].0.as_ref().unwrap().x);
         assert_eq!(0.0, points[0].0.as_ref().unwrap().y);
-        assert_eq!(Some(4.0), points[0].0.as_ref().unwrap().z);
-        assert_eq!(Some(3.0), points[0].0.as_ref().unwrap().m);
+        assert_eq!(4.0, points[0].0.as_ref().unwrap().z);
 
         assert_eq!(1.0, points[1].0.as_ref().unwrap().x);
         assert_eq!(2.0, points[1].0.as_ref().unwrap().y);
-        assert_eq!(Some(4.0), points[1].0.as_ref().unwrap().z);
-        assert_eq!(Some(5.0), points[1].0.as_ref().unwrap().m);
+        assert_eq!(4.0, points[1].0.as_ref().unwrap().z);
     }
 
     #[test]
-    fn basic_multipoint_zm_extra_parents() {
-        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOINT ZM ((0 0 4 3), (1 2 4 5))")
+    fn basic_multipoint_z_extra_parents() {
+        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOINT Z ((0 0 4), (1 2 4))")
             .ok()
             .unwrap();
         let points = match wkt {
@@ -159,17 +157,15 @@ mod tests {
 
         assert_eq!(0.0, points[0].0.as_ref().unwrap().x);
         assert_eq!(0.0, points[0].0.as_ref().unwrap().y);
-        assert_eq!(Some(4.0), points[0].0.as_ref().unwrap().z);
-        assert_eq!(Some(3.0), points[0].0.as_ref().unwrap().m);
+        assert_eq!(4.0, points[0].0.as_ref().unwrap().z);
 
         assert_eq!(1.0, points[1].0.as_ref().unwrap().x);
         assert_eq!(2.0, points[1].0.as_ref().unwrap().y);
-        assert_eq!(Some(4.0), points[1].0.as_ref().unwrap().z);
-        assert_eq!(Some(5.0), points[1].0.as_ref().unwrap().m);
+        assert_eq!(4.0, points[1].0.as_ref().unwrap().z);
     }
     #[test]
     fn postgis_style_multipoint() {
-        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOINT (8 4, 4 0)").unwrap();
+        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOINT Z(8 4 7, 4 0 9)").unwrap();
         let points = match wkt {
             Wkt::MultiPoint(MultiPoint(points)) => points,
             _ => unreachable!(),
@@ -179,7 +175,7 @@ mod tests {
 
     #[test]
     fn mixed_parens_multipoint() {
-        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOINT (8 4, (4 0))").unwrap();
+        let wkt: Wkt<f64> = Wkt::from_str("MULTIPOINT Z(8 4 2, (4 0 1))").unwrap();
         let points = match wkt {
             Wkt::MultiPoint(MultiPoint(points)) => points,
             _ => unreachable!(),
@@ -210,19 +206,17 @@ mod tests {
             Point(Some(Coord {
                 x: 10.1,
                 y: 20.2,
-                z: None,
-                m: None,
+                z: 30.3,
             })),
             Point(Some(Coord {
-                x: 30.3,
-                y: 40.4,
-                z: None,
-                m: None,
+                x: 40.4,
+                y: 50.5,
+                z: 60.6,
             })),
         ]);
 
         assert_eq!(
-            "MULTIPOINT((10.1 20.2),(30.3 40.4))",
+            "MULTIPOINT Z((10.1 20.2 30.3),(40.4 50.5 60.6))",
             format!("{}", multipoint)
         );
     }

@@ -65,7 +65,7 @@ impl<T: WktNum> PointTrait for Point<T> {
             coord.dim()
         } else {
             // TODO: infer dimension from empty WKT
-            geo_traits::Dimensions::Xy
+            geo_traits::Dimensions::Xyz
         }
     }
 
@@ -86,7 +86,7 @@ impl<T: WktNum> PointTrait for &Point<T> {
             coord.dim()
         } else {
             // TODO: infer dimension from empty WKT
-            geo_traits::Dimensions::Xy
+            geo_traits::Dimensions::Xyz
         }
     }
 
@@ -102,15 +102,14 @@ mod tests {
 
     #[test]
     fn basic_point() {
-        let wkt = Wkt::from_str("POINT (10 -20)").ok().unwrap();
+        let wkt = Wkt::from_str("POINT Z(10 -20 30)").ok().unwrap();
         let coord = match wkt {
             Wkt::Point(Point(Some(coord))) => coord,
             _ => unreachable!(),
         };
         assert_eq!(10.0, coord.x);
         assert_eq!(-20.0, coord.y);
-        assert_eq!(None, coord.z);
-        assert_eq!(None, coord.m);
+        assert_eq!(30.0, coord.z);
     }
 
     #[test]
@@ -122,8 +121,7 @@ mod tests {
         };
         assert_eq!(-117.0, coord.x);
         assert_eq!(33.0, coord.y);
-        assert_eq!(Some(10.0), coord.z);
-        assert_eq!(None, coord.m);
+        assert_eq!(10.0, coord.z);
     }
 
     #[test]
@@ -135,14 +133,14 @@ mod tests {
         };
         assert_eq!(-117.0, coord.x);
         assert_eq!(33.0, coord.y);
-        assert_eq!(Some(10.0), coord.z);
-        assert_eq!(None, coord.m);
+        assert_eq!(10.0, coord.z);
     }
 
     #[test]
     fn basic_point_whitespace() {
-        let wkt: Wkt<f64> = Wkt::from_str(" \n\t\rPOINT \n\t\r( \n\r\t10 \n\t\r-20 \n\t\r) \n\t\r")
+        let wkt: Wkt<f64> = Wkt::from_str(" \n\t\rPOINT \n\t\rZ( \n\r\t10 \n\t\r-20 \n\t\r30 \n\t\r) \n\t\r")
             .ok()
+            
             .unwrap();
         let coord = match wkt {
             Wkt::Point(Point(Some(coord))) => coord,
@@ -150,8 +148,7 @@ mod tests {
         };
         assert_eq!(10.0, coord.x);
         assert_eq!(-20.0, coord.y);
-        assert_eq!(None, coord.z);
-        assert_eq!(None, coord.m);
+        assert_eq!(30.0, coord.z);
     }
 
     #[test]
@@ -165,19 +162,18 @@ mod tests {
     fn write_empty_point() {
         let point: Point<f64> = Point(None);
 
-        assert_eq!("POINT EMPTY", format!("{}", point));
+        assert_eq!("POINT Z EMPTY", format!("{}", point));
     }
 
     #[test]
-    fn write_2d_point() {
+    fn write_3d_point() {
         let point = Point(Some(Coord {
             x: 10.12345,
             y: 20.67891,
-            z: None,
-            m: None,
+            z: 30.63831,
         }));
 
-        assert_eq!("POINT(10.12345 20.67891)", format!("{}", point));
+        assert_eq!("POINT Z(10.12345 20.67891 30.63831)", format!("{}", point));
     }
 
     #[test]
@@ -185,37 +181,9 @@ mod tests {
         let point = Point(Some(Coord {
             x: 10.12345,
             y: 20.67891,
-            z: Some(-32.56455),
-            m: None,
+            z: -32.56455,
         }));
 
         assert_eq!("POINT Z(10.12345 20.67891 -32.56455)", format!("{}", point));
-    }
-
-    #[test]
-    fn write_point_with_m_coord() {
-        let point = Point(Some(Coord {
-            x: 10.12345,
-            y: 20.67891,
-            z: None,
-            m: Some(10.),
-        }));
-
-        assert_eq!("POINT M(10.12345 20.67891 10)", format!("{}", point));
-    }
-
-    #[test]
-    fn write_point_with_zm_coord() {
-        let point = Point(Some(Coord {
-            x: 10.12345,
-            y: 20.67891,
-            z: Some(-32.56455),
-            m: Some(10.),
-        }));
-
-        assert_eq!(
-            "POINT ZM(10.12345 20.67891 -32.56455 10)",
-            format!("{}", point)
-        );
     }
 }

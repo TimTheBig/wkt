@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn basic_multilinestring() {
-        let wkt: Wkt<f64> = Wkt::from_str("MULTILINESTRING ((8 4, -3 0), (4 0, 6 -10))")
+        let wkt: Wkt<f64> = Wkt::from_str("MULTILINESTRING Z((8 4 1, -3 0 7), (4 0 9, 6 -10 -12))")
             .ok()
             .unwrap();
         let lines = match wkt {
@@ -140,34 +140,30 @@ mod tests {
                 Coord {
                     x: 10.1,
                     y: 20.2,
-                    z: None,
-                    m: None,
+                    z: 30.3,
                 },
                 Coord {
                     x: 30.3,
                     y: 40.4,
-                    z: None,
-                    m: None,
+                    z: 50.5,
                 },
             ]),
             LineString(vec![
                 Coord {
                     x: 50.5,
                     y: 60.6,
-                    z: None,
-                    m: None,
+                    z: 70.7
                 },
                 Coord {
                     x: 70.7,
                     y: 80.8,
-                    z: None,
-                    m: None,
+                    z: 90.9,
                 },
             ]),
         ]);
 
         assert_eq!(
-            "MULTILINESTRING((10.1 20.2,30.3 40.4),(50.5 60.6,70.7 80.8))",
+            "MULTILINESTRING Z((10.1 20.2 30.3,30.3 40.4 50.5),(50.5 60.6 70.7,70.7 80.8 90.9))",
             format!("{}", multilinestring)
         );
     }

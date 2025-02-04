@@ -13,7 +13,6 @@ use std::{
     str::FromStr,
 };
 
-#[cfg(feature = "geo-types")]
 pub mod geo_types;
 
 /// Deserializes a WKT String into any type which implements `TryFromWkt`.
@@ -21,8 +20,7 @@ pub mod geo_types;
 /// This is useful when you have a struct which has a structured geometry field, (like a [`geo`](https://docs.rs/geo) or
 /// [`geo-types`] geometry) stored as WKT.
 ///
-#[cfg_attr(feature = "geo-types", doc = "```")]
-#[cfg_attr(not(feature = "geo-types"), doc = "```ignore")]
+/// ```
 /// // This example relies on enabling this crates `serde` and `geo-types` features
 /// extern crate geo_types;
 /// extern crate serde;

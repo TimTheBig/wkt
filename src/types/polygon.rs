@@ -124,7 +124,7 @@ mod tests {
 
     #[test]
     fn basic_polygon() {
-        let wkt: Wkt<f64> = Wkt::from_str("POLYGON ((8 4, 4 0, 0 4, 8 4), (7 3, 4 1, 1 4, 7 3))")
+        let wkt: Wkt<f64> = Wkt::from_str("POLYGON Z((8 4 9, 4 0 5, 0 4 3, 8 4 0), (7 3 1, 4 1 4, 1 4 6, 7 3 2))")
             .ok()
             .unwrap();
         let lines = match wkt {
@@ -148,58 +148,50 @@ mod tests {
                 Coord {
                     x: 0.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: 0.,
                 },
                 Coord {
                     x: 20.,
                     y: 40.,
-                    z: None,
-                    m: None,
+                    z: 60.,
                 },
                 Coord {
                     x: 40.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: -40.,
                 },
                 Coord {
                     x: 0.,
                     y: 0.,
-                    z: None,
-                    m: None,
+                    z: 0.,
                 },
             ]),
             LineString(vec![
                 Coord {
                     x: 5.,
                     y: 5.,
-                    z: None,
-                    m: None,
+                    z: 5.,
                 },
                 Coord {
                     x: 20.,
                     y: 30.,
-                    z: None,
-                    m: None,
+                    z: 40.,
                 },
                 Coord {
                     x: 30.,
                     y: 5.,
-                    z: None,
-                    m: None,
+                    z: -30.,
                 },
                 Coord {
                     x: 5.,
                     y: 5.,
-                    z: None,
-                    m: None,
+                    z: 5.,
                 },
             ]),
         ]);
 
         assert_eq!(
-            "POLYGON((0 0,20 40,40 0,0 0),(5 5,20 30,30 5,5 5))",
+            "POLYGON Z((0 0 0,20 40 60,40 0 -40,0 0 0),(5 5 5,20 30 40,30 5 -30,5 5 5))",
             format!("{}", polygon)
         );
     }
