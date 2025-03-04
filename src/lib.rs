@@ -282,7 +282,7 @@ where
 
 impl<T> Wkt<T>
 where
-    T: WktNum + FromStr + Default,
+    T: WktNum + FromStr,
 {
     fn from_tokens(tokens: Tokens<T>) -> Result<Self, &'static str> {
         let mut tokens = tokens.peekable();

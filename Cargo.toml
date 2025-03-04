@@ -1,13 +1,15 @@
 [package]
 name = "wkt"
-description = "Rust read/write support for well-known text (WKT)"
 version = "0.13.0"
+description = "Rust read/write support for well-known text (WKT)"
+edition = "2021"
+rust-version = "1.78.0"
+
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/georust/wkt"
+repository = "https://github.com/TimTheBig/wkt"
 autobenches = true
 readme = "README.md"
-keywords = ["geo", "geospatial", "wkt", "3D", "geo-3D"]
-edition = "2021"
+keywords = ["geo", "geospatial", "wkt", "3d", "geo-3d"]
 
 [dependencies]
 geo-types = { version = "0.8.0", git = "https://github.com/TimTheBig/geo-3d.git" }
@@ -15,10 +17,10 @@ geo-traits = { version = "0.3", git = "https://github.com/TimTheBig/geo-3d.git" 
 num-traits = "0.2"
 serde = { version = "1.0", default-features = false, optional = true }
 thiserror = "2.0"
-log = "0.4.25"
+log = "0.4"
 
 [dev-dependencies]
-criterion = "0.5.1"
+criterion = ">=0.5.1"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde_json = "1.0"
 
