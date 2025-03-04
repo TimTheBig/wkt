@@ -3,9 +3,7 @@ use std::fmt::Write;
 
 use geo_traits::to_geo::ToGeoRect;
 use geo_traits::{
-    CoordTrait, GeometryCollectionTrait, GeometryTrait, LineStringTrait, LineTrait,
-    MultiLineStringTrait, MultiPointTrait, MultiPolygonTrait, PointTrait, PolygonTrait, RectTrait,
-    TriangleTrait,
+    CoordTrait, Dimensions, GeometryCollectionTrait, GeometryTrait, LineStringTrait, LineTrait, MultiLineStringTrait, MultiPointTrait, MultiPolygonTrait, PointTrait, PolygonTrait, RectTrait, TriangleTrait
 };
 use crate::error::Error;
 use crate::WktNum;
@@ -20,10 +18,10 @@ enum PhysicalCoordinateDimension {
     Three,
 }
 
-impl TryFrom<geo_traits::Dimensions> for PhysicalCoordinateDimension {
+impl TryFrom<Dimensions> for PhysicalCoordinateDimension {
     type Error = Error;
 
-    fn try_from(value: geo_traits::Dimensions) -> Result<Self, Self::Error> {
+    fn try_from(value: Dimensions) -> Result<Self, Self::Error> {
         match value.size() {
             2 => Ok(Self::Two),
             3 => Ok(Self::Three),
@@ -40,10 +38,10 @@ pub fn write_point<T: WktNum + fmt::Display>(
     let dim = g.dim();
     // Write prefix
     match dim {
-        geo_traits::Dimensions::Xy | geo_traits::Dimensions::Unknown(2) => f.write_str("POINT"),
-        geo_traits::Dimensions::Xyz | geo_traits::Dimensions::Unknown(3) => f.write_str("POINT Z"),
-        geo_traits::Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
-        geo_traits::Dimensions::Xym | geo_traits::Dimensions::Xyzm => return Err(Error::UnknownDimension),
+        Dimensions::Xy | Dimensions::Unknown(2) => f.write_str("POINT"),
+        Dimensions::Xyz | Dimensions::Xym | Dimensions::Unknown(3) => f.write_str("POINT Z"),
+        Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
+        Dimensions::Xyzm => return Err(Error::UnknownDimension),
     }?;
     let size = dim.try_into()?;
     if let Some(coord) = g.coord() {
@@ -64,14 +62,14 @@ pub fn write_linestring<T: WktNum + fmt::Display>(
     let dim = linestring.dim();
     // Write prefix
     match dim {
-        geo_traits::Dimensions::Xy | geo_traits::Dimensions::Unknown(2) => {
+        Dimensions::Xy | Dimensions::Unknown(2) => {
             f.write_str("LINESTRING")
         }
-        geo_traits::Dimensions::Xyz | geo_traits::Dimensions::Unknown(3) => {
+        Dimensions::Xyz | Dimensions::Xym | Dimensions::Unknown(3) => {
             f.write_str("LINESTRING Z")
         }
-        geo_traits::Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
-        geo_traits::Dimensions::Xym | geo_traits::Dimensions::Xyzm => return Err(Error::UnknownDimension),
+        Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
+        Dimensions::Xyzm => return Err(Error::UnknownDimension),
     }?;
     let size = dim.try_into()?;
     if linestring.num_coords() == 0 {
@@ -89,12 +87,12 @@ pub fn write_polygon<T: WktNum + fmt::Display>(
     let dim = polygon.dim();
     // Write prefix
     match dim {
-        geo_traits::Dimensions::Xy | geo_traits::Dimensions::Unknown(2) => f.write_str("POLYGON"),
-        geo_traits::Dimensions::Xyz | geo_traits::Dimensions::Unknown(3) => {
+        Dimensions::Xy | Dimensions::Unknown(2) => f.write_str("POLYGON"),
+        Dimensions::Xyz | Dimensions::Xym | Dimensions::Unknown(3) => {
             f.write_str("POLYGON Z")
         }
-        geo_traits::Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
-        geo_traits::Dimensions::Xym | geo_traits::Dimensions::Xyzm => return Err(Error::UnknownDimension),
+        Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
+        Dimensions::Xyzm => return Err(Error::UnknownDimension),
     }?;
     let size = dim.try_into()?;
     if let Some(exterior) = polygon.exterior() {
@@ -124,14 +122,14 @@ pub fn write_multi_point<T: WktNum + fmt::Display>(
     let dim = multipoint.dim();
     // Write prefix
     match dim {
-        geo_traits::Dimensions::Xy | geo_traits::Dimensions::Unknown(2) => {
+        Dimensions::Xy | Dimensions::Unknown(2) => {
             f.write_str("MULTIPOINT")
         }
-        geo_traits::Dimensions::Xyz | geo_traits::Dimensions::Unknown(3) => {
+        Dimensions::Xyz | Dimensions::Xym | Dimensions::Unknown(3) => {
             f.write_str("MULTIPOINT Z")
         }
-        geo_traits::Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
-        geo_traits::Dimensions::Xym | geo_traits::Dimensions::Xyzm => return Err(Error::UnknownDimension),
+        Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
+        Dimensions::Xyzm => return Err(Error::UnknownDimension),
     }?;
     let size = dim.try_into()?;
 
@@ -166,14 +164,14 @@ pub fn write_multi_linestring<T: WktNum + fmt::Display>(
     let dim = multilinestring.dim();
     // Write prefix
     match dim {
-        geo_traits::Dimensions::Xy | geo_traits::Dimensions::Unknown(2) => {
+        Dimensions::Xy | Dimensions::Unknown(2) => {
             f.write_str("MULTILINESTRING")
         }
-        geo_traits::Dimensions::Xyz | geo_traits::Dimensions::Unknown(3) => {
+        Dimensions::Xyz | Dimensions::Xym | Dimensions::Unknown(3) => {
             f.write_str("MULTILINESTRING Z")
         }
-        geo_traits::Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
-        geo_traits::Dimensions::Xym | geo_traits::Dimensions::Xyzm => return Err(Error::UnknownDimension),
+        Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
+        Dimensions::Xyzm => return Err(Error::UnknownDimension),
     }?;
     let size = dim.try_into()?;
     let mut line_strings = multilinestring.line_strings();
@@ -202,14 +200,14 @@ pub fn write_multi_polygon<T: WktNum + fmt::Display>(
     let dim = multipolygon.dim();
     // Write prefix
     match dim {
-        geo_traits::Dimensions::Xy | geo_traits::Dimensions::Unknown(2) => {
+        Dimensions::Xy | Dimensions::Unknown(2) => {
             f.write_str("MULTIPOLYGON")
         }
-        geo_traits::Dimensions::Xyz | geo_traits::Dimensions::Unknown(3) => {
+        Dimensions::Xyz | Dimensions::Xym | Dimensions::Unknown(3) => {
             f.write_str("MULTIPOLYGON Z")
         }
-        geo_traits::Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
-        geo_traits::Dimensions::Xym | geo_traits::Dimensions::Xyzm => return Err(Error::UnknownDimension),
+        Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
+        Dimensions::Xyzm => return Err(Error::UnknownDimension),
     }?;
     let size = dim.try_into()?;
 
@@ -271,14 +269,14 @@ pub fn write_geometry_collection<T: WktNum + fmt::Display>(
     let dim = gc.dim();
     // Write prefix
     match dim {
-        geo_traits::Dimensions::Xy | geo_traits::Dimensions::Unknown(2) => {
+        Dimensions::Xy | Dimensions::Unknown(2) => {
             f.write_str("GEOMETRYCOLLECTION")
         }
-        geo_traits::Dimensions::Xyz | geo_traits::Dimensions::Unknown(3) => {
+        Dimensions::Xyz | Dimensions::Xym | Dimensions::Unknown(3) => {
             f.write_str("GEOMETRYCOLLECTION Z")
         }
-        geo_traits::Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
-        geo_traits::Dimensions::Xym | geo_traits::Dimensions::Xyzm => return Err(Error::UnknownDimension),
+        Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
+        Dimensions::Xyzm => return Err(Error::UnknownDimension),
     }?;
     let mut geometries = gc.geometries();
 
@@ -311,10 +309,10 @@ pub fn write_rect<T: WktNum + fmt::Display>(
 ) -> Result<(), Error> {
     // Write prefix 3D
     match &rect.dim() {
-        geo_traits::Dimensions::Xy | geo_traits::Dimensions::Unknown(2) => f.write_str("POLYGON"),
-        geo_traits::Dimensions::Xyz | geo_traits::Dimensions::Unknown(3) => f.write_str("POLYGON Z"),
-        geo_traits::Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
-        geo_traits::Dimensions::Xym | geo_traits::Dimensions::Xyzm => return Err(Error::UnknownDimension),
+        Dimensions::Xy | Dimensions::Unknown(2) => f.write_str("POLYGON"),
+        Dimensions::Xyz | Dimensions::Xym | Dimensions::Unknown(3) => f.write_str("POLYGON Z"),
+        Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
+        Dimensions::Xyzm => return Err(Error::UnknownDimension),
     }?;
 
     // We need to construct the points of the rect that make up the exterior Polygon
@@ -335,15 +333,15 @@ pub fn write_triangle<T: WktNum + fmt::Display>(
     let dim = triangle.dim();
     // Write prefix
     match dim {
-        geo_traits::Dimensions::Xy | geo_traits::Dimensions::Unknown(2) => f.write_str("POLYGON"),
-        geo_traits::Dimensions::Xyz | geo_traits::Dimensions::Unknown(3) => {
+        Dimensions::Xy | Dimensions::Unknown(2) => f.write_str("POLYGON"),
+        Dimensions::Xyz | Dimensions::Unknown(3) => {
             f.write_str("POLYGON Z")
         }
-        geo_traits::Dimensions::Xym => f.write_str("POLYGON M"),
-        geo_traits::Dimensions::Xyzm | geo_traits::Dimensions::Unknown(4) => {
+        Dimensions::Xym => f.write_str("POLYGON M"),
+        Dimensions::Xyzm | Dimensions::Unknown(4) => {
             f.write_str("POLYGON ZM")
         }
-        geo_traits::Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
+        Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
     }?;
     let size = dim.try_into()?;
     f.write_str("(")?;
@@ -359,7 +357,7 @@ pub fn write_triangle<T: WktNum + fmt::Display>(
 
 /// Write an object implementing [`LineTrait`] to a WKT string.
 ///
-/// The Line will written as a LineString with two coordinates.
+/// The Line will written as a `LineString` with two coordinates.
 pub fn write_line<T: WktNum + fmt::Display>(
     f: &mut impl Write,
     line: &impl LineTrait<T = T>,
@@ -367,14 +365,14 @@ pub fn write_line<T: WktNum + fmt::Display>(
     let dim = line.dim();
     // Write prefix
     match dim {
-        geo_traits::Dimensions::Xy | geo_traits::Dimensions::Unknown(2) => {
+        Dimensions::Xy | Dimensions::Unknown(2) => {
             f.write_str("LINESTRING")
         }
-        geo_traits::Dimensions::Xyz | geo_traits::Dimensions::Unknown(3) => {
+        Dimensions::Xyz | Dimensions::Xym | Dimensions::Unknown(3) => {
             f.write_str("LINESTRING Z")
         }
-        geo_traits::Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
-        geo_traits::Dimensions::Xym | geo_traits::Dimensions::Xyzm => return Err(Error::UnknownDimension),
+        Dimensions::Unknown(_) => return Err(Error::UnknownDimension),
+        Dimensions::Xyzm => return Err(Error::UnknownDimension),
     }?;
     let size = dim.try_into()?;
     write_coord_sequence(f, line.coords().into_iter(), size)

@@ -647,7 +647,7 @@ where
 {
     fn from_tokens(tokens: &mut PeekableTokens<T>, dim: Dimension) -> Result<Self, &'static str>;
 
-    /// The preferred top-level FromTokens API, which additionally checks for the presence of Z, M,
+    /// The preferred top-level `FromTokens` API, which additionally checks for the presence of Z, M,
     /// and ZM in the token stream.
     fn from_tokens_with_header(
         tokens: &mut PeekableTokens<T>,

@@ -29,7 +29,7 @@ const GEOMETRYCOLLECTION: &str = "GEOMETRYCOLLECTION";
 pub fn infer_type(input: &str) -> Result<(GeometryType, Option<Dimension>), String> {
     let input = input.trim_start();
 
-    if let Some((prefix, _suffix)) = input.split_once("(") {
+    if let Some((prefix, _suffix)) = input.split_once('(') {
         let prefix = prefix.to_uppercase();
 
         let (geom_type, dim_str) = if let Some(dim_str) = prefix.strip_prefix(POINT) {
@@ -47,14 +47,14 @@ pub fn infer_type(input: &str) -> Result<(GeometryType, Option<Dimension>), Stri
         } else if let Some(dim_str) = prefix.strip_prefix(GEOMETRYCOLLECTION) {
             (GeometryType::GeometryCollection, dim_str)
         } else {
-            return Err(format!("Unsupported WKT prefix {}", prefix));
+            return Err(format!("Unsupported WKT prefix {prefix}"));
         };
 
         let dim = if dim_str.contains("ZM") {
             Dimension::XYZM
-        } else if dim_str.contains("Z") {
+        } else if dim_str.contains('Z') {
             Dimension::XYZ
-        } else if dim_str.contains("M") {
+        } else if dim_str.contains('M') {
             Dimension::XYM
         } else {
             Dimension::XY
@@ -82,7 +82,7 @@ pub fn infer_type(input: &str) -> Result<(GeometryType, Option<Dimension>), Stri
         } else if input.starts_with(GEOMETRYCOLLECTION) {
             Ok((GeometryType::GeometryCollection, None))
         } else {
-            return Err(format!("Unsupported WKT prefix {}", input));
+            return Err(format!("Unsupported WKT prefix {input}"));
         }
     }
 }

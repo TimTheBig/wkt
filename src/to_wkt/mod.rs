@@ -13,8 +13,8 @@ pub use geo_trait_impl::{
 use crate::error::Error;
 use std::io;
 
-/// A wrapper around something that implements std::io::Write to be used with our writer traits,
-/// which require std::fmt::Write
+/// A wrapper around something that implements `std::io::Write` to be used with our writer traits,
+/// which require `std::fmt::Write`
 struct WriterWrapper<W: io::Write> {
     writer: W,
     most_recent_err: Option<io::Error>,
@@ -85,9 +85,9 @@ where
                 (Error::FmtError(_), Some(io_err)) => io_err,
                 (Error::FmtError(fmt_err), None) => {
                     debug_assert!(false, "FmtError without setting an error on WriterWrapper");
-                    io::Error::new(io::ErrorKind::Other, fmt_err.to_string())
+                    io::Error::other(fmt_err.to_string())
                 }
-                (other, _) => io::Error::new(io::ErrorKind::Other, other.to_string()),
+                (other, _) => io::Error::other(other.to_string()),
             }
         })
     }

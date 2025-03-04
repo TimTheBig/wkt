@@ -304,10 +304,10 @@ where
     }
 }
 
-/// Macro for implementing TryFromWkt for all the geo-types.
-/// Alternatively, we could try to have a kind of blanket implementation on TryFrom<Wkt<T>>,
+/// Macro for implementing `TryFromWkt` for all the geo-types.
+/// Alternatively, we could try to have a kind of blanket implementation on `TryFrom<Wkt<T>>`,
 /// but:
-///   1. what would be the type of TryFromWkt::Error?
+///   1. what would be the type of `TryFromWkt::Error`?
 ///   2. that would preclude ever having a specialized implementation for geo-types as they'd
 ///      be ambiguous/redundant.
 macro_rules! try_from_wkt_impl {
