@@ -1,6 +1,4 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/georust/meta/master/logo/logo.png")]
-// Copyright 2014-2015 The GeoRust Developers
-//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -101,7 +99,7 @@ use geo_traits::{
     GeometryCollectionTrait, GeometryTrait, LineStringTrait, MultiLineStringTrait, MultiPointTrait,
     MultiPolygonTrait, PointTrait, PolygonTrait,
 };
-use num_traits::{Float, Num, NumCast};
+use num_traits::Float;
 
 use crate::to_wkt::write_geometry;
 use crate::tokenizer::{PeekableTokens, Token, Tokens};
@@ -153,18 +151,12 @@ pub use deserialize::geo_types::deserialize_geometry;
 )]
 pub use deserialize::geo_types::deserialize_point;
 
-pub trait WktNum: Num + NumCast + PartialOrd + PartialEq + Copy + fmt::Debug + Float {}
-impl<T> WktNum for T where T: Num + NumCast + PartialOrd + PartialEq + Copy + fmt::Debug + Float {}
-
-pub trait WktFloat: WktNum + Float {}
-impl<T> WktFloat for T where T: WktNum + Float {}
+pub trait WktNum: PartialEq + fmt::Debug + Float + Default {}
+impl<T> WktNum for T where T: PartialEq + fmt::Debug + Float + Default {}
 
 #[derive(Clone, Debug, PartialEq)]
 /// All supported WKT geometry [`types`]
-pub enum Wkt<T>
-where
-    T: WktNum,
-{
+pub enum Wkt<T: WktNum> {
     Point(Point<T>),
     LineString(LineString<T>),
     Polygon(Polygon<T>),
@@ -176,7 +168,7 @@ where
 
 impl<T> Wkt<T>
 where
-    T: WktNum + FromStr + Default,
+    T: WktNum + FromStr,
 {
     fn from_word_and_tokens(
         word: &str,
@@ -188,83 +180,83 @@ where
         // matches here.
         match word {
             w if w.eq_ignore_ascii_case("POINT") => {
-                let x = <Point<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
-                x.map(|y| y.into())
+                let point_or_err = <Point<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
+                point_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("POINTZ") | w.eq_ignore_ascii_case("POINTM") => {
-                let x = <Point<T> as FromTokens<T>>::from_tokens_with_header(
+                let point_or_err = <Point<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
                 );
-                x.map(|y| y.into())
+                point_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("LINESTRING") || w.eq_ignore_ascii_case("LINEARRING") => {
-                let x = <LineString<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
-                x.map(|y| y.into())
+                let ls_or_err = <LineString<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
+                ls_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("LINESTRINGZ") | w.eq_ignore_ascii_case("LINESTRINGM") => {
-                let x = <LineString<T> as FromTokens<T>>::from_tokens_with_header(
+                let ls_or_err = <LineString<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
                 );
-                x.map(|y| y.into())
+                ls_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("POLYGON") => {
-                let x = <Polygon<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
-                x.map(|y| y.into())
+                let poly_or_err = <Polygon<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
+                poly_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("POLYGONZ") | w.eq_ignore_ascii_case("POLYGONM") => {
-                let x = <Polygon<T> as FromTokens<T>>::from_tokens_with_header(
+                let poly_or_err = <Polygon<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
                 );
-                x.map(|y| y.into())
+                poly_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("MULTIPOINT") => {
-                let x = <MultiPoint<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
-                x.map(|y| y.into())
+                let mp_or_err = <MultiPoint<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
+                mp_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("MULTIPOINTZ") | w.eq_ignore_ascii_case("MULTIPOINTM") => {
-                let x = <MultiPoint<T> as FromTokens<T>>::from_tokens_with_header(
+                let mp_or_err = <MultiPoint<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
                 );
-                x.map(|y| y.into())
+                mp_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("MULTILINESTRING") => {
-                let x =
+                let mls_or_err =
                     <MultiLineString<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
-                x.map(|y| y.into())
+                mls_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("MULTILINESTRINGZ") | w.eq_ignore_ascii_case("MULTILINESTRINGM") => {
-                let x = <MultiLineString<T> as FromTokens<T>>::from_tokens_with_header(
+                let mls_or_err = <MultiLineString<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
                 );
-                x.map(|y| y.into())
+                mls_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("MULTIPOLYGON") => {
-                let x = <MultiPolygon<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
-                x.map(|y| y.into())
+                let mpoly_or_err = <MultiPolygon<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
+                mpoly_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("MULTIPOLYGONZ") | w.eq_ignore_ascii_case("MULTIPOLYGONM") => {
-                let x = <MultiPolygon<T> as FromTokens<T>>::from_tokens_with_header(
+                let mpoly_or_err = <MultiPolygon<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
                 );
-                x.map(|y| y.into())
+                mpoly_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("GEOMETRYCOLLECTION") => {
-                let x =
+                let gc_or_err =
                     <GeometryCollection<T> as FromTokens<T>>::from_tokens_with_header(tokens, None);
-                x.map(|y| y.into())
+                gc_or_err.map(Into::into)
             }
             w if w.eq_ignore_ascii_case("GEOMETRYCOLLECTIONZ") | w.eq_ignore_ascii_case("GEOMETRYCOLLECTIONM") => {
-                let x = <GeometryCollection<T> as FromTokens<T>>::from_tokens_with_header(
+                let gc_or_err = <GeometryCollection<T> as FromTokens<T>>::from_tokens_with_header(
                     tokens,
                     Some(Dimension::XYZ),
                 );
-                x.map(|y| y.into())
+                gc_or_err.map(Into::into)
             }
             _ => Err("Invalid type encountered"),
         }
