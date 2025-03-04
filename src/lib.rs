@@ -91,6 +91,8 @@
 //!
 //! Implement [`geo_traits`] on your own geometry representation and those functions will work out
 //! of the box on your data.
+#![deny(unused)]
+
 use std::default::Default;
 use std::fmt;
 use std::str::FromStr;
@@ -120,8 +122,6 @@ mod infer_type;
 
 pub use infer_type::infer_type;
 
-extern crate geo_types;
-
 pub use crate::to_wkt::ToWkt;
 
 pub mod conversion;
@@ -130,8 +130,6 @@ pub mod geo_types_from_wkt;
 
 mod geo_types_to_wkt;
 
-#[cfg(feature = "serde")]
-extern crate serde;
 #[cfg(feature = "serde")]
 pub mod deserialize;
 #[cfg(feature = "serde")]
