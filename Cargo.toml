@@ -1,6 +1,6 @@
 [package]
 name = "wkt"
-version = "0.13.0"
+version = "0.14.0"
 description = "Rust read/write support for well-known text (WKT)"
 edition = "2021"
 rust-version = "1.78.0"
@@ -12,8 +12,8 @@ readme = "README.md"
 keywords = ["geo", "geospatial", "wkt", "3d", "geo-3d"]
 
 [dependencies]
-geo-types = { version = "0.8.0", git = "https://github.com/TimTheBig/geo-3d.git" }
-geo-traits = { version = "0.3", git = "https://github.com/TimTheBig/geo-3d.git" }
+geo-types = { version = "0.9.0", git = "https://github.com/TimTheBig/geo-3d.git" }
+geo-traits = { version = "0.4", git = "https://github.com/TimTheBig/geo-3d.git" }
 num-traits = "0.2"
 serde = { version = "1.0", default-features = false, optional = true }
 thiserror = "2.0"
