@@ -892,8 +892,8 @@ mod tests {
         let err = not_a_collection.unwrap_err();
         match err {
             Error::MismatchedGeometry {
-                expected: "geo_types::geometry::geometry_collection::GeometryCollection",
-                found: "geo_types::geometry::point::Point",
+                expected: "geo_3d_types::geometry::geometry_collection::GeometryCollection",
+                found: "geo_3d_types::geometry::point::Point",
             } => {}
             e => panic!("Not the error we expected. Found: {}", e),
         }
@@ -916,8 +916,8 @@ mod tests {
         let err = not_actually_a_line_string.unwrap_err();
         match err {
             Error::MismatchedGeometry {
-                expected: "geo_types::geometry::line_string::LineString",
-                found: "geo_types::geometry::point::Point",
+                expected: "geo_3d_types::geometry::line_string::LineString",
+                found: "geo_3d_types::geometry::point::Point",
             } => {}
             e => panic!("Not the error we expected. Found: {}", e),
         }
